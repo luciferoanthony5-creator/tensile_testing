@@ -25,52 +25,51 @@ Analysis of tensile test data for 14 specimens (`A1`–`A7`, `S1`–`S7`) using 
 
 ## Notebooks
 
-This section and the Plan record the purpose of each step and the reasoning behind it. The **Code walkthrough** section below explains the code as it stood on 2026-09-30. The notebooks are the source of truth for the current code.
+This section explains the purpose of each step. The **Code walkthrough** section below explains the current code as of (9/30/2026).
 
-### `stres_clalc.ipynb` (done): calculates stress
+### `stres_clalc.ipynb` : calculates stress
 - Calculates `Stress (psi) = 4F / (πD²)` from each specimen's diameter `D` and writes the results to `data_with_stress/`.
-- Diameters are typed in with `input()` for each specimen when the loop runs. The last run (2026-09-30) used the measured diameters, 0.495–0.503 in. They're also saved to `diameters.csv`.
+- Diameters are typed in with `input()` for each specimen when the loop runs. This was run 9/30/2026 using the posted "sample information"
 
-### `material_properties.ipynb` (in progress): NumPy analysis
-Finds E, 0.2% offset yield and UTS for every specimen, plots the curves, and exports the results for Minitab.
+### `material_properties.ipynb`: analysis using NumPy
+Calculates young's modulus, yield strength, ultimate tensile strength and exports teh following data frame to be used in minitab:
+Diameter before test, "d_o (in)"; Area before test, "A_o in^2", Young's modulus, "E Msi"; r-squared, R^2; yield strength, "Yield ksi" ; ultimate tensile strngth, "UTS ksi"; 
 
 | Cell | Purpose |
 |---|---|
 | 0 | Load all 14 files, plot the stress–strain curves in one window |
 | 1 | UTS |
-| 2 | Young's modulus (plus A4's separate fit) |
+| 2 | Young's modulus (A4 got its own program because it had defective data at the start) |
 | 3 | 0.2% offset line and yield strength, one window with 14 subplots |
-| 4 | Same as cell 3, but 14 separate windows, each also saved to `plots/`. Run 3 **or** 4; both fill `yield_02` with the same values. |
-| 5 | `plt.close("all")`: closes every plot window |
-| 6 | Build the results table and export `results_A.csv` / `results_S.csv` |
+| 4 | Same as cell 3, but 14 separate windows to be saved to `plots/` folder. Run 3 or 4, both are not necessary for the following cells.|
+| 5 | `plt.close("all")`: closes every plot window (do not want them to stay on your screen) |
+| 6 | Builds the results table and export `results_A.csv` / `results_S.csv` |
 
 ## Data notes
-- **A4:** the extensometer was not mounted correctly. Strain reads 0.153% for the first ~300 data points, so A4's E and 0.2% offset yield will be wrong. Keep A4 in the exported CSV; it can be removed in Minitab. The lab report should discuss the effect of removing vs. keeping it.
-  A4's UTS (~63 ksi) is also well above the other A specimens (~47 ksi). UTS doesn't depend on the extensometer. With the measured diameter (0.498 in, close to the others) it's still ~63 ksi, so the diameter doesn't explain it. Check A4's material/temper.
-- **Extensometer removed near UTS:** strain stops changing after ~0.9–1.1% for every specimen, so each stress–strain curve ends in a flat tail. Strain values are only valid up to UTS (the point of maximum stress).
-- **Negative force in the first ~20 rows:** this is from before the test started (grip clamping / load cell zero offset), not real compression.
+- **A4:** It appears extensometer was not mounted correctly. Strain reads 0.153% for the first ~300 data points, so A4's E and 0.2% offset yield will be off. A4 is rewritten and the corrected data is exported; however, it may be good to talk about in the lab report.
+  Note after run: Despite the young's modolus being corrected A4's yield strength is noticably larger than the other A specimens.
+- **Extensometer removed near UTS:** At uts the extensometer was removed so strain data is constant after ~0.9–1.1% for every specimen. As a result, strain data is not valid after uts (used later).
+- **Negative force in the first ~20 rows:** this is probably from intial compression from the spring on the machine
 - **Negative starting strain (A1, S4, S7):** probably noise, or the extensometer was deflected after being zeroed. It may not have been re-zeroed after being mounted on the specimen.
 - **Grip seating at the start:** A3 oscillates while increasing for the first ~90 points instead of rising steadily. S6 is nearly flat until ~0.02% strain.
+- to fix the intial noise in the beginning of the tests a lower bound is added to the strain column and everythng lower is cut. (0.002 was selected)
 
-## Plan
+## Outline of cells
 1. **Young's modulus:** fit a line to the linear (elastic) portion of each curve. The slope is E.
-   - Lower strain bound: above 0 to drop the negative starting strain. Try ~0.02% to also skip the grip-seating curve in A3 and S6. Tune by testing.
-   - Upper strain bound: ~0.2%. At 0.2% strain every specimen except A4 is within ~1% of the fitted line, and yield is at ~0.6%, so this stays in the elastic region. Tune by testing. This 0.2 is NOT the 0.2% offset.
-   - Strain is stored in %. Convert to in/in before fitting, or E comes out 100× too small.
-2. **Stress–strain curve** for each specimen, on its own plot.
-3. **Elastic-region plot** for each specimen: stress vs. strain over the fit window only. The stress and strain points must stay paired, so both are cut to the same rows.
+   - Lower strain bound: above 0 to drop the negative starting strain. T0.02%  was tried to skip the inital noise and lead to better rvalues so it was kept.
+   - Upper strain bound: ~0.2%. At 0.2% strain every specimen (except A4) seems to be within the elastic portion. This number was tweaked until the elastic portion was found by analyzing the rvalues.
+   - Strain is stored in %. Convert to in/in before fitting (if not E would be too small)
+2. **Stress–strain curve** for each specimen, on its own subplot.
+3. **Elastic-region plot** for each specimen: stress vs. strain over the fit window only (needed or else the offset line will take us far away from the data). The stress and strain are cut to the same rows.
 4. **0.2% offset line** for each specimen: `stress_offset = E·(ε − 0.002) + b`.
-   - Use the full strain range, not just the fit window. Yield is at ~0.6% strain, outside the window, so the line must extend past it to cross the curve.
-   - 0.002 is in/in, so ε must be in/in too.
-5. **Yield strength:** where the offset line crosses the stress–strain curve, i.e. where `stress − stress_offset` changes sign from + to −.
-   - Search only up to UTS. After UTS the strain is frozen, so any crossing there is meaningless.
-   - Handle the case where there is no crossing.
+   - Use the full strain range, not the cut portion (to get to the intersect point ~0.6%).
+5. **Yield strength:** where the offset line crosses the stress–strain curve. In practice, where `difference = stress − 0.2%_offset` changes sign from + to −.
+   - Search only up to UTS. (All specimens intersected before)
 6. **Export CSV for Minitab:** two files, `results_A.csv` (A1 … A7) and `results_S.csv` (S1 … S7), one row per specimen. Headers: `Specimen, d₀ (in), A₀ (in²), E (Msi), R², Yield (ksi), UTS (ksi)`. The files are written with `encoding="utf-8-sig"` so Minitab reads ₀ and ² correctly. There should be no stray commas, since each comma starts a new column.
-   - A4: do not leave E and yield blank it can be removed later in minitab.
 
 ## Code walkthrough (as of 2026-09-30)
 
-Explanations of the code. Snippets are short excerpts; the notebooks have the full code.
+Explanations of the code. (mostly for self reference)
 
 ### `stres_clalc.ipynb`
 
@@ -285,3 +284,5 @@ for num in plt.get_fignums():          # ID numbers of every open figure
 | Fit quality | `r2[name]`, `res.stderr` | R² ≈ 0.999 (A4 in the loop ≈ 0.08) |
 | DataFrame | `df.head()`, `df.shape`, `df.columns`, `df.dtypes`, `df.describe()` | numeric columns are `float64`, not `object` |
 | What is this? | `type(x)` | `dict`, `numpy.ndarray`, `DataFrame`, `Path` … |
+
+AI assistance: Claude Code was used as Python tutor for this prject. The sections of the readme before "code explaination" is mostly written by the author with some format assistance from claude. The code explaination is mostly a copy-paste/ rewrite of claude chats. Code was written by author. 
