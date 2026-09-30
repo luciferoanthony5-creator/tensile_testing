@@ -2,15 +2,12 @@
 
 Analysis of tensile test data for 14 specimens (`A1`–`A7`, `S1`–`S7`) using Python, NumPy, pandas and matplotlib in Jupyter notebooks.
 
-The user is learning Python/NumPy through this project and writes the code themselves. Give annotated sketches and syntax explanations; don't edit the notebooks unless asked.
-
 ## Environment
 - Python 3.13 in `.venv/`. Run notebooks with the `.venv (3.13.5)` kernel.
 - Libraries used: `numpy`, `pandas`, `matplotlib`, `pathlib`, `scipy` (`scipy.stats.linregress`). Install new packages with `~/projects/tensile_test/.venv/bin/pip install <pkg>`.
 - Paths in the notebooks are relative to this folder (`tensile_test/`).
 - Plots open in a pop-up window (`%matplotlib qt`, via WSLg) instead of inline. To support this, `PyQt6` is installed in `.venv`, and Qt's system libraries were installed with apt:
   `libglib2.0-0t64 libegl1 libgl1 libfontconfig1 libfreetype6 libdbus-1-3 libwayland-client0 libwayland-cursor0 libx11-xcb1 libxkbcommon0 libxkbcommon-x11-0 libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render0 libxcb-render-util0 libxcb-shape0 libxcb-shm0 libxcb-sync1 libxcb-util1 libxcb-xfixes0 libxcb-xkb1`
-  `sudo` needs a password, so apt installs must be run in a separate WSL terminal, not with `!` in Claude Code.
 
 ## Data
 - `Data_export/*.csv`: raw test-machine exports, one per specimen, about 1000 rows each. Ignore the `*:Zone.Identifier` files (Windows download metadata).
@@ -28,7 +25,7 @@ The user is learning Python/NumPy through this project and writes the code thems
 
 ## Notebooks
 
-This section and the Plan record the purpose of each step and the reasoning behind it. The **Code walkthrough** section below explains the code as it stood on 2026-09-30. The notebooks are the source of truth: re-read them for the current code before relying on variable names, masks or structure from this file.
+This section and the Plan record the purpose of each step and the reasoning behind it. The **Code walkthrough** section below explains the code as it stood on 2026-09-30. The notebooks are the source of truth for the current code.
 
 ### `stres_clalc.ipynb` (done): calculates stress
 - Calculates `Stress (psi) = 4F / (πD²)` from each specimen's diameter `D` and writes the results to `data_with_stress/`.
@@ -73,7 +70,7 @@ Finds E, 0.2% offset yield and UTS for every specimen, plots the curves, and exp
 
 ## Code walkthrough (as of 2026-09-30)
 
-Explanations of the code the user has written, collected from chat. Snippets are short excerpts; the notebooks have the full code.
+Explanations of the code. Snippets are short excerpts; the notebooks have the full code.
 
 ### `stres_clalc.ipynb`
 
