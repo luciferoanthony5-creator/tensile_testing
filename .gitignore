@@ -1,0 +1,9 @@
+# Python virtual environment (recreate with pip, don't commit)
+.venv/
+
+# Windows download metadata
+*:Zone.Identifier
+
+# Jupyter / Python caches
+.ipynb_checkpoints/
+__pycache__/
