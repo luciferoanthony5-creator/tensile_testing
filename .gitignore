@@ -7,3 +7,6 @@
 # Jupyter / Python caches
 .ipynb_checkpoints/
 __pycache__/
+
+# Claude Code instructions (local only)
+CLAUDE.md
